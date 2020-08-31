@@ -38,6 +38,8 @@ class Hero(Character):
         self.coins = 20
         self.double_hit = False
 
+    stash = []
+   
     def restore(self):
         self.health = 10
         print("Hero's heath is restored to %d!" % self.health)
@@ -78,6 +80,13 @@ class Wizard(Character):
 
     def attack(self, enemy):
         swap_power = random.random() > 0.5
+        
+        if not self.alive():
+            return
+        print("%s attacks %s" % (self.name, enemy.name))
+        enemy.receive_damage(self.power)
+        time.sleep(1.5)
+        
         if swap_power:
             print("%s swaps power with %s during attack" % (self.name, enemy.name))
             self.power, enemy.power = enemy.power, self.power
@@ -88,13 +97,61 @@ class Wizard(Character):
 class Bloodletter(Character):
     def __init__(self):
         self.name = 'Bloodletter'
-        self.health = 30
+        self.health = 25
         self.power = 1
         self.bounty = 8
 
     def attack(self, enemy):
+        
+        if not self.alive():
+            return
+        print("%s attacks %s" % (self.name, enemy.name))
+        enemy.receive_damage(self.power)
+        time.sleep(1.5)
+        
         enemy.receive_damage(self.power)
         self.power += 2
+
+
+class Barbarian(Character):
+    def __init__(self):
+        self.name = "Barbarian"
+        self.health = 20
+        self.power = 4
+        self.bounty = 10
+
+    def attack(self, enemy):
+        crit_hit = random.random() > .5
+        
+        if not self.alive():
+            return
+        print("%s attacks %s" % (self.name, enemy.name))
+        enemy.receive_damage(self.power)
+        time.sleep(1.5)
+        
+        if crit_hit:
+           print('The barbarian exposes your weakness and strikes at it! ')
+           enemy.receive_damage(self.power * 1.5) 
+
+
+class Shadow(Character):
+    def __init__(self):
+        self.name = 'Shadow'
+        self.health = 1
+        self.power = 7
+        self.bounty = 15
+    
+    
+    def receive_damage(self, points):
+        dodge_dmg = random.random() > .2
+        if dodge_dmg:
+            print('Your blade glides through their etheral figure. ')
+            self.health -= 0
+        else:
+            self.health -= points
+            print("%s received %d damage." % (self.name, points))
+            if self.health <= 0:
+                print("%s is dead." % self.name)
         
 
 
@@ -151,7 +208,7 @@ class Axe(object):
     cost = 20
     name = 'axe'
     def apply(self, hero):
-        hero.power *=2
+        hero.power *=1.4
         print(f"{hero.name}'s power increased to {hero.power}. " )
 
 class Daggers(object):
@@ -169,50 +226,30 @@ class Store(object):
             print("=====================")
             print("Welcome to the store!")
             print("=====================")
-            print("You have %d coins." % hero.coins)
+            print(f"You have {hero.coins} coins and {hero.health} hitpoints. ")
             print("What do you want to do?")
             for i in range(len(Store.items)):
                 item = Store.items[i]
                 print("%d. buy %s (%d)" % (i + 1, item.name, item.cost))
             print("10. leave")
             user_input = int(input("> "))
-            if user_input == 1:
-                ItemToBuy = Store.items[user_input - 1]
-                item = ItemToBuy()
-                hero.buy(item)
-                tonic.apply(hero) 
-            
-            elif user_input == 2:
-                ItemToBuy = Store.items[user_input - 1]
-                item = ItemToBuy()
-                hero.buy(item)
-                sword.apply(hero)
-
-            elif user_input == 3:
-                ItemToBuy = Store.items[user_input - 1]
-                item = ItemToBuy()
-                hero.buy(item)
-                axe.apply(hero)
-
-            elif user_input == 4:
-                ItemToBuy = Store.items[user_input - 1]
-                item = ItemToBuy()
-                hero.buy(item)
-                daggers.apply(hero)
-
-            elif user_input == 10:
+            if user_input == 10:
                 break
             else:
                 ItemToBuy = Store.items[user_input - 1]
                 item = ItemToBuy()
-                hero.buy(item)
+                if hero.coins >= item.cost:
+                    hero.buy(item)
+                else:
+                    print("Hey! Khajit only has wares if you have coin!. ")
+    
 
 hero = Hero()
 tonic = Tonic()
 sword = Sword()
 axe = Axe()
 daggers = Daggers()
-enemies = [Goblin(), Wizard(), Bloodletter()]
+enemies = [Goblin(), Wizard(), Bloodletter(), Barbarian(), Shadow()]
 battle_engine = Battle()
 shopping_engine = Store()
 
